@@ -74,9 +74,9 @@ end
 
 learning_rate = 1 # dumb hyperparameter
 
-# train_q_learning("small", "small.csv", "small_cache", "small.policy", 100, 4, learning_rate, 0.95)
+train_max_likelihood("small", "small.csv", "small_cache", "small.policy", 100, 4, learning_rate, 0.95)
 # train_q_learning("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
-train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
-# train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
+# train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
+train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
 
 # train_q_learning("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
