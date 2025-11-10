@@ -25,8 +25,8 @@ for line in small_lines
 end
 println("Done")
 
-
-small_policy(state::Int) = [argmax(small_q_learning.Q[row, :]) for row in 1:100][state]
+small_map = [argmax(small_q_learning.Q[row, :]) for row in 1:100]
+small_policy(state::Int) = small_map[state]
 
 ##################################################
 #   Medium CSV - 50000 states
@@ -47,7 +47,8 @@ for line in medium_lines
 end
 println("Done")
 
-medium_policy(state::Int) = [argmax(medium_q_learning.Q[row, :]) for row in 1:50000][state]
+medium_map = [argmax(medium_q_learning.Q[row, :]) for row in 1:50000]
+medium_policy(state::Int) = medium_map[state]
 
 ##################################################
 #   Large CSV - 302020 states
@@ -59,10 +60,13 @@ medium_policy(state::Int) = [argmax(medium_q_learning.Q[row, :]) for row in 1:50
 
 if save_outputs
     save_policy("small.policy", small_policy, 100)
+    println("Saved Small")
     save_policy("medium.policy", medium_policy, 50000)
+    println("Saved Medium")
     # save_policy("large.policy", bad_policy, 302020)
 
     save_action_value_function("small_cache", small_q_learning)
+    save_action_value_function("medium_cache", medium_q_learning)
     # print(l)
 end
 
