@@ -18,9 +18,6 @@ function save_policy(filename::String, policy_func::Function, num_states::Int)
 end
 
 function save_action_value_function(filename::String, model::QLearning)
-    # open(filename, "w") do f
-    #     write(f, model.Q)
-    # end
     serialize(filename, model)
 end
 
