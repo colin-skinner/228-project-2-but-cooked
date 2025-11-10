@@ -31,9 +31,9 @@ function train_q_learning(name, csv_name, cache_name, save_name, rows, cols, rat
     print("Saved "); println(name)
 end
 
-function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols, discount = 0.95, iters = 1000, τ = 1.0)
+function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols, discount = 0.95, iters = 100, τ = 1.0)
 
-    planner = ValueIteration(100)
+    planner = ValueIteration(300)
     if isfile(cache_name)
         max_likelihood::MaximumLikelihoodMDP = load_cache(cache_name)
     else
@@ -48,7 +48,9 @@ function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols,
         for line in lines
             update!(max_likelihood, line[1], line[2], line[3], line[4])
         end
-        println(i)
+        if (i % 10) == 0
+            println(i)
+        end
     end
     println("Done")
 
@@ -71,7 +73,7 @@ end
 learning_rate = 1 # dumb hyperparameter
 
 train_max_likelihood("small", "small.csv", "small_cache", "small.policy", 100, 4, 0.95, 100, 0.2)
-train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, 1, 100)
+train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, 1, 1000)
 train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, 0.95, 100)
 
 
