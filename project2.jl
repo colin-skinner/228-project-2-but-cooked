@@ -2,11 +2,6 @@
 include("policies.jl")
 
 save_outputs = true
-# save_outputs = false
-
-train_small = true
-train_medium = true
-train_large = true
 
 function train_q_learning(name, csv_name, cache_name, save_name, rows, cols, rate, discount = 0.95, iters = 1000)
 
@@ -38,7 +33,7 @@ end
 
 function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols, rate, discount = 0.95, iters = 1000)
 
-    planner = ValueIteration(100)
+    planner = ValueIteration(300)
     if isfile(cache_name)
         max_likelihood::MaximumLikelihoodMDP = load_action_value_function(cache_name)
     else
@@ -61,20 +56,13 @@ function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols,
 
     println("Solved")
 
-    # println("Optimal state values:")
-    # for (s, u) in enumerate(policy.U)
-    #     println("  U($s) = $(round(u, digits=3))")
-    # end
+    # stochastic_policy = epsilon_greedy_policy(policy, 0.05)
+    τ = 1.0  # small temperature → mostly greedy; increase to explore more
+    soft_policy = make_softmax_policy(policy, τ)
+    
 
-    # println("\nGreedy actions:")
-    # for s in max_likelihood.𝒮
-    #     println("  π($s) = action $(policy(s))")
-    # end
 
-    # action_map = [argmax(q_learning.Q[row, :]) for row in 1:rows]
-    # policy(state::Int) = action_map[state]
-
-    save_policy(save_name, make_policy_function(policy), rows)
+    save_policy(save_name, soft_policy, rows)
     save_action_value_function(cache_name, max_likelihood)
 
     print("Saved "); println(name)
@@ -88,7 +76,7 @@ learning_rate = 1 # dumb hyperparameter
 
 # train_q_learning("small", "small.csv", "small_cache", "small.policy", 100, 4, learning_rate, 0.95)
 # train_q_learning("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
-# train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 100)
-train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 100)
+train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
+# train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
 
 # train_q_learning("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
