@@ -31,9 +31,9 @@ function train_q_learning(name, csv_name, cache_name, save_name, rows, cols, rat
     print("Saved "); println(name)
 end
 
-function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols, rate, discount = 0.95, iters = 1000)
+function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols, discount = 0.95, iters = 1000, τ = 1.0)
 
-    planner = ValueIteration(300)
+    planner = ValueIteration(100)
     if isfile(cache_name)
         max_likelihood::MaximumLikelihoodMDP = load_action_value_function(cache_name)
     else
@@ -43,7 +43,7 @@ function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols,
 
     lines = get_lines(csv_name)
 
-    print("Training "); println(name)
+    println("Training " * name)
     for i in 1:iters
         for line in lines
             update!(max_likelihood, line[1], line[2], line[3], line[4])
@@ -57,15 +57,14 @@ function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols,
     println("Solved")
 
     # stochastic_policy = epsilon_greedy_policy(policy, 0.05)
-    τ = 1.0  # small temperature → mostly greedy; increase to explore more
     soft_policy = make_softmax_policy(policy, τ)
     
-
+    println("Policy Created")
 
     save_policy(save_name, soft_policy, rows)
     save_action_value_function(cache_name, max_likelihood)
 
-    print("Saved "); println(name)
+    println("Saved Policy to " * save_name * "\n")
 end
 
 ##################################################
@@ -74,9 +73,11 @@ end
 
 learning_rate = 1 # dumb hyperparameter
 
-train_max_likelihood("small", "small.csv", "small_cache", "small.policy", 100, 4, learning_rate, 0.95)
-# train_q_learning("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
-# train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
-train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
+# train_q_learning("small", "small.csv", "small_cache", "small.policy", 100, 4, 1, 0.95, 10)
+train_max_likelihood("small", "small.csv", "small_cache", "small.policy", 100, 4, 0.95, 10, 0.2)
+train_max_likelihood("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, 1, 10)
+train_max_likelihood("large", "large.csv", "large_cache", "large.policy", 302020, 9, 0.95, 10)
 
+
+# train_q_learning("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, 1, 10)
 # train_q_learning("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)

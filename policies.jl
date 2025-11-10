@@ -2,7 +2,7 @@ using Printf
 using Serialization
 
 function save_policy(filename::String, policy_func::Function, num_states::Int)
-    open(filename, "w") do f
+    open("policies/" * filename, "w") do f
         for si in 1:num_states
             write(f, @sprintf("%d\n", policy_func(si)))
         end
@@ -91,6 +91,7 @@ function update!(model::MaximumLikelihoodMDP, s::Int, a::Int, r::Number, s′::I
     model.ρ[key] = get(model.ρ, key, 0.0) + float(r)
 end
 
+
 struct ValueFunctionPolicy
     𝒫 # problem
     U # utility function
@@ -135,9 +136,13 @@ function softmax_policy(model::MaximumLikelihoodMDP, U::Vector{Float64}, s::Int,
 end
 
 # Make a callable policy function
-function make_softmax_policy(policy::ValueFunctionPolicy, τ::Float64)
+function make_softmax_policy(policy, τ::Float64) # Softmax Policy
     return s -> softmax_policy(policy.𝒫, policy.U, s, τ)
 end
+
+##################################################
+#   ValueIteration
+##################################################
 struct ValueIteration
     k_max::Int
     tol::Float64
@@ -168,70 +173,6 @@ function solve(M::ValueIteration, 𝒫::MaximumLikelihoodMDP)
     𝒫.U = U
     return ValueFunctionPolicy(𝒫, U)
 end
-
-make_policy_function(policy::ValueFunctionPolicy) = s -> greedy(policy.𝒫, policy.U, s).a
-
-# ε-greedy policy wrapper for MLE MDP
-function make_epsilon_greedy_policy(policy::ValueFunctionPolicy, ε::Float64, default_action::Int=1)
-    return s -> begin
-        # handle unseen or out-of-bounds states
-        if s < 1 || s > length(policy.𝒫.𝒮)
-            return default_action
-        end
-        if rand() < ε
-            # explore randomly
-            return rand(policy.𝒫.𝒜)
-        else
-            # greedy action
-            return greedy(policy.𝒫, policy.U, s).a
-        end
-    end
-end
-
-# Revised train_max_likelihood
-function train_max_likelihood(
-        name, csv_name, cache_name, save_name,
-        rows, cols, rate, discount = 0.95,
-        iters = 1000, k_max = 300, ε = 0.05)
-
-    # Load or initialize MLE MDP
-    if isfile(cache_name)
-        max_likelihood = load_action_value_function(cache_name)
-        println("Loaded cached MDP")
-    else
-        planner = ValueIteration(k_max)
-        max_likelihood = MaximumLikelihoodMDP(
-            1:rows, 1:cols, Dict(), Dict(), discount, zeros(rows), planner
-        )
-    end
-
-    # Load dataset
-    lines = get_lines(csv_name)
-
-    println("Training $name")
-    for i in 1:iters
-        for line in lines
-            update!(max_likelihood, line[1], line[2], line[3], line[4])
-        end
-        if i % 50 == 0
-            println("Iteration $i / $iters")
-        end
-    end
-
-    # Value iteration
-    policy = solve(max_likelihood.planner, max_likelihood)
-    println("Value iteration done")
-
-    # ε-greedy policy function
-    ε_policy = make_epsilon_greedy_policy(policy, ε, default_action=1)
-
-    # Save policy and MDP
-    save_policy(save_name, ε_policy, rows)
-    save_action_value_function(cache_name, max_likelihood)
-
-    println("Saved $name policy and MDP cache")
-end
-
 
 # 341 for MaximumLikelihoodMDP
 # 318 for FullUpdate
