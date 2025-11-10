@@ -1,6 +1,7 @@
 using Printf
 using Serialization
 
+# EpsilonGreedyExploration?
 mutable struct QLearning
     𝒮 # state space (assumes 1:nstates)
     𝒜 # action space (assumes 1:nactions)

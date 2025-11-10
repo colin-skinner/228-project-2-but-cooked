@@ -42,5 +42,5 @@ end
 learning_rate = 0.2 # dumb hyperparameter
 
 # train("small", "small.csv", "small_cache", "small.policy", 100, 4, learning_rate, 0.95)
-train("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 10000)
-# train("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95)
+# train("medium", "medium.csv", "medium_cache", "medium.policy", 50000, 7, learning_rate, 1, 1000)
+train("large", "large.csv", "large_cache", "large.policy", 302020, 9, learning_rate, 0.95, 1000)
