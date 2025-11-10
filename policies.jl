@@ -9,11 +9,11 @@ function save_policy(filename::String, policy_func::Function, num_states::Int)
     end
 end
 
-function save_action_value_function(filename::String, model)
+function save_cache(filename::String, model)
     serialize(filename, model)
 end
 
-function load_action_value_function(filename::String)
+function load_cache(filename::String)
     return deserialize(filename)
 end
 
