@@ -1,39 +1,9 @@
 
 include("policies.jl")
 
-save_outputs = true
-
-function train_q_learning(name, csv_name, cache_name, save_name, rows, cols, rate, discount = 0.95, iters = 1000)
-
-    if isfile(cache_name)
-        q_learning::QLearning = load_cache(cache_name)
-    else
-        q_learning = QLearning(1:rows, 1:cols, discount, zeros(rows, cols), rate)
-    end
-
-    lines = get_lines(csv_name)
-
-    print("Training "); println(name)
-    for i in 1:iters
-        for line in lines
-            update!(q_learning, line[1], line[2], line[3], line[4])
-        end
-        println(i)
-    end
-    println("Done")
-
-    action_map = [argmax(q_learning.Q[row, :]) for row in 1:rows]
-    policy(state::Int) = action_map[state]
-
-    save_policy(save_name, policy, rows)
-    save_cache(cache_name, q_learning)
-
-    print("Saved "); println(name)
-end
-
 function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols, discount = 0.95, iters = 100, τ = 1.0)
 
-    planner = ValueIteration(300)
+    planner = ValueIteration(500)
     if isfile(cache_name)
         max_likelihood::MaximumLikelihoodMDP = load_cache(cache_name)
     else
@@ -57,6 +27,11 @@ function train_max_likelihood(name, csv_name, cache_name, save_name, rows, cols,
     policy = solve(max_likelihood.planner, max_likelihood)
     println("Solved")
 
+    # softmax = SoftmaxExploration(τ)
+    # soft_policy = s -> begin
+    #     Q = [lookahead(max_likelihood, max_likelihood.U, s, a) for a in 1:cols]
+    #     return softmax(Q)
+    # end
     soft_policy = make_softmax_policy(policy, τ)
     println("Policy Created")
 

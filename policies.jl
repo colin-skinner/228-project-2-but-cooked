@@ -1,5 +1,8 @@
 using Printf
 using Serialization
+using Random
+using Distributions # Categorical
+# using StatsBase # Sample
 
 function save_policy(filename::String, policy_func::Function, num_states::Int)
     open("policies/" * filename, "w") do f
@@ -30,26 +33,6 @@ function get_lines(filename::String)
         end
     end
     return lines
-end
-
-##################################################
-#   Q Learning
-##################################################
-
-mutable struct QLearning
-    𝒮 # state space (assumes 1:nstates)
-    𝒜 # action space (assumes 1:nactions)
-    γ # discount
-    Q # action value function
-    α # learning rate
-end
-
-lookahead(model::QLearning, s, a) = model.Q[s,a]
-
-function update!(model::QLearning, s, a, r, s′)
-    γ, Q, α = model.γ, model.Q, model.α
-    Q[s,a] += α*(r + γ*maximum(Q[s′,:]) - Q[s,a])
-    return model
 end
 
 ##################################################
@@ -91,7 +74,16 @@ function update!(model::MaximumLikelihoodMDP, s::Int, a::Int, r::Number, s′::I
     model.ρ[key] = get(model.ρ, key, 0.0) + float(r)
 end
 
+# mutable struct SoftmaxExploration
+#     τ::Float64
+# end
 
+# function (π::SoftmaxExploration)(Q::Vector{<:Real})
+#     Q_shift = Q .- maximum(Q)
+#     probs = exp.(Q_shift ./ π.τ)
+#     probs ./= sum(probs)
+#     return rand(Categorical(probs))   # Doing sample doesn't work with Categorical for some reason
+# end
 struct ValueFunctionPolicy
     𝒫 # problem
     U # utility function
@@ -102,6 +94,10 @@ function greedy(𝒫::MaximumLikelihoodMDP, U::Vector{Float64}, s::Int)
 end
 
 (π::ValueFunctionPolicy)(s) = greedy(π.𝒫, π.U, s).a
+
+# mutable struct SoftmaxExploration
+#     τ::Float64
+# end
 
 function softmax_probs(Q::Vector{<:Real}, τ::Float64)
     Q_shift = Q .- maximum(Q)         # prevent overflow
@@ -173,6 +169,17 @@ function solve(M::ValueIteration, 𝒫::MaximumLikelihoodMDP)
     𝒫.U = U
     return ValueFunctionPolicy(𝒫, U)
 end
+
+struct ValueFunctionPolicy
+    𝒫 # problem
+    U # utility function
+end
+function greedy(𝒫::MaximumLikelihoodMDP, U::Vector{Float64}, s::Int)
+    u, a = findmax(a -> lookahead(𝒫, U, s, a), 𝒫.𝒜)
+    return (a=a, u=u)
+end
+
+(π::ValueFunctionPolicy)(s) = greedy(π.𝒫, π.U, s).a
 
 # 341 for MaximumLikelihoodMDP
 # 318 for FullUpdate
